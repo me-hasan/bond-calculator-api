@@ -1,38 +1,50 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { BondCalculationDto } from './dto/bond-calculation.dto';
 import { BondCalculationResponseDto, Cashflow, CashflowType } from './dto/bond-calculation-response.dto';
 import { CashflowRowDto } from './dto/cashflow-row.dto';
 
 @Injectable()
 export class BondsService {
+  private readonly logger = new Logger(BondsService.name);
+
   /**
    * Calculate bond metrics including current yield, YTM, and cashflow schedule
    * @param dto Bond calculation parameters
    * @returns Bond calculation results with cashflows
    */
   calculateBond(dto: BondCalculationDto): BondCalculationResponseDto {
+    this.logger.log(`[calculateBond] Starting calculation with DTO: ${JSON.stringify(dto)}`);
+
     const {
       faceValue,
       couponRate,
       marketPrice,
       yearsToMaturity,
-      couponFrequency,
+      frequency,
       yieldToMaturity: providedYtm,
     } = dto;
 
+    this.logger.log(`[calculateBond] Extracted values - faceValue: ${faceValue}, couponRate: ${couponRate}, marketPrice: ${marketPrice}, yearsToMaturity: ${yearsToMaturity}, frequency: ${frequency}`);
+
     // Calculate periodic values
-    const periodicCouponRate = couponRate / 100 / couponFrequency;
+    const periodicCouponRate = couponRate / 100 / frequency;
     const couponPayment = faceValue * periodicCouponRate;
-    const totalPeriods = Math.ceil(yearsToMaturity * couponFrequency);
+    const totalPeriods = Math.ceil(yearsToMaturity * frequency);
+
+    this.logger.log(`[calculateBond] Calculated - periodicCouponRate: ${periodicCouponRate}, couponPayment: ${couponPayment}, totalPeriods: ${totalPeriods}`);
 
     // Calculate Current Yield: (annualCoupon / marketPrice) * 100
-    const annualCoupon = couponPayment * couponFrequency;
+    const annualCoupon = couponPayment * frequency;
     const currentYield = (annualCoupon / marketPrice) * 100;
+
+    this.logger.log(`[calculateBond] Current yield: ${currentYield}`);
 
     // Calculate YTM (if not provided)
     const yieldToMaturity = providedYtm
       ? providedYtm / 100
-      : this.calculateYTM(marketPrice, faceValue, couponRate, yearsToMaturity, couponFrequency);
+      : this.calculateYTM(marketPrice, faceValue, couponRate, yearsToMaturity, frequency);
+
+    this.logger.log(`[calculateBond] Yield to maturity: ${yieldToMaturity}`);
 
     // Calculate total interest: annualCoupon * yearsToMaturity
     const totalInterest = annualCoupon * yearsToMaturity;
@@ -40,22 +52,30 @@ export class BondsService {
     // Determine bond status: Premium, Discount, or Par
     const status = marketPrice > faceValue ? 'Premium' : marketPrice < faceValue ? 'Discount' : 'Par';
 
+    this.logger.log(`[calculateBond] Bond status: ${status}, Total interest: ${totalInterest}`);
+
     // Generate cashflows
     const cashflows = this.generateCashflows(
       faceValue,
       couponPayment,
       totalPeriods,
-      yieldToMaturity / couponFrequency,
-      couponFrequency,
+      yieldToMaturity / frequency,
+      frequency,
     );
 
-    return {
+    this.logger.log(`[calculateBond] Generated ${cashflows.length} cashflows`);
+
+    const result = {
       currentYield,
       yieldToMaturity: yieldToMaturity * 100,
       totalInterest,
       status,
       cashflows,
     };
+
+    this.logger.log(`[calculateBond] Calculation complete. Result: ${JSON.stringify(result)}`);
+
+    return result;
   }
 
   /**
@@ -71,19 +91,19 @@ export class BondsService {
       faceValue,
       couponRate,
       yearsToMaturity,
-      couponFrequency,
+      frequency,
     } = dto;
 
     // Calculate periodic values
-    const periodicCouponRate = couponRate / 100 / couponFrequency;
+    const periodicCouponRate = couponRate / 100 / frequency;
     const couponPayment = faceValue * periodicCouponRate;
-    const totalPeriods = Math.ceil(yearsToMaturity * couponFrequency);
+    const totalPeriods = Math.ceil(yearsToMaturity * frequency);
 
     const cashflows: CashflowRowDto[] = [];
     const startDate = new Date();
 
     // Calculate months per period based on frequency
-    const monthsPerPeriod = 12 / couponFrequency;
+    const monthsPerPeriod = 12 / frequency;
 
     let cumulativeInterest = 0;
 
