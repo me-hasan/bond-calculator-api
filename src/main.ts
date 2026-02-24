@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+
+const logger = new Logger('Bootstrap');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +17,23 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Request logging middleware
+  app.use((req, res, next) => {
+    const startTime = Date.now();
+    logger.log(`[REQUEST] ${req.method} ${req.url}`);
+    logger.log(`[HEADERS] ${JSON.stringify(req.headers)}`);
+    if (req.body && Object.keys(req.body).length > 0) {
+      logger.log(`[BODY] ${JSON.stringify(req.body, null, 2)}`);
+    }
+
+    res.on('finish', () => {
+      const duration = Date.now() - startTime;
+      logger.log(`[RESPONSE] ${req.method} ${req.url} - Status: ${res.statusCode} - ${duration}ms`);
+    });
+
+    next();
+  });
+
   // Global validation pipe with detailed error messages
   app.useGlobalPipes(
     new ValidationPipe({
@@ -25,6 +44,7 @@ async function bootstrap() {
         enableImplicitConversion: true,
       },
       exceptionFactory: (errors) => {
+        logger.error(`[VALIDATION ERROR] ${JSON.stringify(errors, null, 2)}`);
         const formattedErrors = errors.map((error) => ({
           field: error.property,
           constraints: Object.values(error.constraints || {}),
@@ -46,5 +66,6 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000);
+  logger.log(`Application is running on: http://localhost:${process.env.PORT ?? 3000}`);
 }
 bootstrap();
