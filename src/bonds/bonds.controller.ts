@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseFilters } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, UseFilters, Logger } from '@nestjs/common';
 import { BondsService } from './bonds.service';
 import { BondCalculationDto } from './dto/bond-calculation.dto';
 import { BondCalculationResponseDto } from './dto/bond-calculation-response.dto';
@@ -7,6 +7,8 @@ import { HttpExceptionFilter } from '../common/filters/http-exception.filter';
 @Controller('bond')
 @UseFilters(HttpExceptionFilter)
 export class BondsController {
+  private readonly logger = new Logger(BondsController.name);
+
   constructor(private readonly bondsService: BondsService) {}
 
   /**
@@ -27,7 +29,16 @@ export class BondsController {
   calculateBond(
     @Body() dto: BondCalculationDto,
   ): BondCalculationResponseDto {
-    return this.bondsService.calculateBond(dto);
+    this.logger.log(`[calculateBond] Received request. DTO: ${JSON.stringify(dto)}`);
+
+    try {
+      const result = this.bondsService.calculateBond(dto);
+      this.logger.log(`[calculateBond] Successfully calculated result`);
+      return result;
+    } catch (error) {
+      this.logger.error(`[calculateBond] Error during calculation: ${error}`);
+      throw error;
+    }
   }
 
   /**
