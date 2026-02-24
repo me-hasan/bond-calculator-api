@@ -22,7 +22,7 @@ describe('BondCalculationDto Validation', () => {
     couponRate: 5,
     marketPrice: 950,
     yearsToMaturity: 5,
-    couponFrequency: 2,
+    frequency: 2,
   };
 
   /**
@@ -117,13 +117,13 @@ describe('BondCalculationDto Validation', () => {
     /**
      * BD-006: Reject missing frequency
      */
-    it('BD-006: should reject DTO with missing couponFrequency', async () => {
-      const { couponFrequency, ...dtoWithoutFreq } = validDto;
+    it('BD-006: should reject DTO with missing frequency', async () => {
+      const { frequency, ...dtoWithoutFreq } = validDto;
 
       const errors = await validateDto(dtoWithoutFreq);
 
       expect(errors.length).toBeGreaterThan(0);
-      expect(hasErrorsForProperty(errors, 'couponFrequency')).toBe(true);
+      expect(hasErrorsForProperty(errors, 'frequency')).toBe(true);
     });
   });
 
@@ -230,23 +230,23 @@ describe('BondCalculationDto Validation', () => {
      * BD-015: Reject invalid frequency
      */
     it('BD-015: should reject string frequency value', async () => {
-      const dto = { ...validDto, couponFrequency: 'quarterly' as any };
+      const dto = { ...validDto, frequency: 'quarterly' as any };
 
       const errors = await validateDto(dto);
 
-      expect(hasErrorsForProperty(errors, 'couponFrequency')).toBe(true);
+      expect(hasErrorsForProperty(errors, 'frequency')).toBe(true);
     });
 
     /**
      * BD-015.1: Reject frequency not in [1, 2, 4, 12]
      */
     it('BD-015.1: should reject frequency value of 3', async () => {
-      const dto = { ...validDto, couponFrequency: 3 };
+      const dto = { ...validDto, frequency: 3 };
 
       const errors = await validateDto(dto);
 
-      expect(hasErrorsForProperty(errors, 'couponFrequency')).toBe(true);
-      const freqErrors = errors.filter((e) => e.property === 'couponFrequency');
+      expect(hasErrorsForProperty(errors, 'frequency')).toBe(true);
+      const freqErrors = errors.filter((e) => e.property === 'frequency');
       expect(freqErrors[0].constraints.isIn).toBeDefined();
     });
 
@@ -254,33 +254,33 @@ describe('BondCalculationDto Validation', () => {
      * BD-015.2: Reject frequency value of 0
      */
     it('BD-015.2: should reject frequency value of 0', async () => {
-      const dto = { ...validDto, couponFrequency: 0 };
+      const dto = { ...validDto, frequency: 0 };
 
       const errors = await validateDto(dto);
 
-      expect(hasErrorsForProperty(errors, 'couponFrequency')).toBe(true);
+      expect(hasErrorsForProperty(errors, 'frequency')).toBe(true);
     });
 
     /**
      * BD-015.3: Reject frequency value of 5
      */
     it('BD-015.3: should reject frequency value of 5', async () => {
-      const dto = { ...validDto, couponFrequency: 5 };
+      const dto = { ...validDto, frequency: 5 };
 
       const errors = await validateDto(dto);
 
-      expect(hasErrorsForProperty(errors, 'couponFrequency')).toBe(true);
+      expect(hasErrorsForProperty(errors, 'frequency')).toBe(true);
     });
 
     /**
      * BD-015.4: Reject frequency value of 6
      */
     it('BD-015.4: should reject frequency value of 6', async () => {
-      const dto = { ...validDto, couponFrequency: 6 };
+      const dto = { ...validDto, frequency: 6 };
 
       const errors = await validateDto(dto);
 
-      expect(hasErrorsForProperty(errors, 'couponFrequency')).toBe(true);
+      expect(hasErrorsForProperty(errors, 'frequency')).toBe(true);
     });
 
     /**
@@ -288,11 +288,11 @@ describe('BondCalculationDto Validation', () => {
      */
     it('BD-016: should reject non-numeric frequency', async () => {
       // Since frequency is a number field, "annual" string would be rejected
-      const dto = { ...validDto, couponFrequency: 'annual' as any };
+      const dto = { ...validDto, frequency: 'annual' as any };
 
       const errors = await validateDto(dto);
 
-      expect(hasErrorsForProperty(errors, 'couponFrequency')).toBe(true);
+      expect(hasErrorsForProperty(errors, 'frequency')).toBe(true);
     });
 
     /**
@@ -300,36 +300,37 @@ describe('BondCalculationDto Validation', () => {
      */
     it('BD-017: should reject non-numeric uppercase frequency', async () => {
       // Since frequency is a number field, "ANNUAL" string would be rejected
-      const dto = { ...validDto, couponFrequency: 'ANNUAL' as any };
+      const dto = { ...validDto, frequency: 'ANNUAL' as any };
 
       const errors = await validateDto(dto);
 
-      expect(hasErrorsForProperty(errors, 'couponFrequency')).toBe(true);
+      expect(hasErrorsForProperty(errors, 'frequency')).toBe(true);
     });
   });
 
   describe('DTO Validation - Type Mismatch', () => {
     /**
-     * BD-018: Reject string face value
+     * BD-018: @Type decorator auto-transforms string numbers to actual numbers
+     * Updated test: String '1000' is transformed to number 1000 and passes validation
      */
-    it('BD-018: should reject string faceValue', async () => {
+    it('BD-018: should transform string faceValue to number with @Type decorator', async () => {
       const dto = { ...validDto, faceValue: '1000' as any };
 
       const errors = await validateDto(dto);
 
-      expect(hasErrorsForProperty(errors, 'faceValue')).toBe(true);
-      const fvErrors = errors.filter((e) => e.property === 'faceValue');
-      expect(fvErrors[0].constraints.isNumber).toBeDefined();
+      // With @Type(() => Number), '1000' is transformed to 1000, so no errors
+      expect(errors.length).toBe(0);
     });
 
     /**
-     * BD-019: Reject string coupon rate
+     * BD-019: Non-numeric string is transformed to NaN and fails validation
      */
-    it('BD-019: should reject string couponRate', async () => {
+    it('BD-019: should reject non-numeric string couponRate', async () => {
       const dto = { ...validDto, couponRate: '5%' as any };
 
       const errors = await validateDto(dto);
 
+      // '5%' transforms to NaN which fails @IsPositive() validation
       expect(hasErrorsForProperty(errors, 'couponRate')).toBe(true);
     });
   });
@@ -526,25 +527,25 @@ describe('BondCalculationDto Validation', () => {
     });
 
     /**
-     * BD-028.4: Reject null couponFrequency
+     * BD-028.4: Reject null frequency
      */
-    it('BD-028.4: should reject null couponFrequency', async () => {
-      const dto = { ...validDto, couponFrequency: null };
+    it('BD-028.4: should reject null frequency', async () => {
+      const dto = { ...validDto, frequency: null };
 
       const errors = await validateDto(dto);
 
-      expect(hasErrorsForProperty(errors, 'couponFrequency')).toBe(true);
+      expect(hasErrorsForProperty(errors, 'frequency')).toBe(true);
     });
 
     /**
      * BD-029: Reject empty string for frequency
      */
-    it('BD-029: should reject empty string for couponFrequency', async () => {
-      const dto = { ...validDto, couponFrequency: '' as any };
+    it('BD-029: should reject empty string for frequency', async () => {
+      const dto = { ...validDto, frequency: '' as any };
 
       const errors = await validateDto(dto);
 
-      expect(hasErrorsForProperty(errors, 'couponFrequency')).toBe(true);
+      expect(hasErrorsForProperty(errors, 'frequency')).toBe(true);
     });
 
     /**
@@ -564,7 +565,7 @@ describe('BondCalculationDto Validation', () => {
      * BD-FREQ-001: Accept frequency of 1 (annual)
      */
     it('BD-FREQ-001: should accept frequency of 1 (annual)', async () => {
-      const dto = { ...validDto, couponFrequency: 1 };
+      const dto = { ...validDto, frequency: 1 };
 
       const errors = await validateDto(dto);
 
@@ -575,7 +576,7 @@ describe('BondCalculationDto Validation', () => {
      * BD-FREQ-002: Accept frequency of 2 (semi-annual)
      */
     it('BD-FREQ-002: should accept frequency of 2 (semi-annual)', async () => {
-      const dto = { ...validDto, couponFrequency: 2 };
+      const dto = { ...validDto, frequency: 2 };
 
       const errors = await validateDto(dto);
 
@@ -586,7 +587,7 @@ describe('BondCalculationDto Validation', () => {
      * BD-FREQ-003: Accept frequency of 4 (quarterly)
      */
     it('BD-FREQ-003: should accept frequency of 4 (quarterly)', async () => {
-      const dto = { ...validDto, couponFrequency: 4 };
+      const dto = { ...validDto, frequency: 4 };
 
       const errors = await validateDto(dto);
 
@@ -597,7 +598,7 @@ describe('BondCalculationDto Validation', () => {
      * BD-FREQ-004: Accept frequency of 12 (monthly)
      */
     it('BD-FREQ-004: should accept frequency of 12 (monthly)', async () => {
-      const dto = { ...validDto, couponFrequency: 12 };
+      const dto = { ...validDto, frequency: 12 };
 
       const errors = await validateDto(dto);
 
@@ -724,30 +725,37 @@ describe('BondCalculationDto Validation', () => {
 
   describe('DTO Validation - Type Transformation', () => {
     /**
-     * BD-TYPE-001: plainToInstance does not auto-transform strings without @Type decorator
-     * This test documents the current behavior - strings remain strings and fail validation
+     * BD-TYPE-001: @Type decorator auto-transforms string numbers to actual numbers
+     * Updated test: Verifies that @Type(() => Number) transforms strings to numbers
      */
-    it('BD-TYPE-001: should keep string as string (no @Type decorator on DTO)', async () => {
+    it('BD-TYPE-001: should auto-transform string to number with @Type decorator', async () => {
       const dto = { ...validDto, faceValue: '1000' };
 
       const dtoInstance = plainToInstance(BondCalculationDto, dto);
-      // Without @Type() decorator, plainToInstance keeps the type as-is
-      expect(typeof dtoInstance.faceValue).toBe('string');
+      // With @Type() decorator, plainToInstance transforms string to number
+      expect(typeof dtoInstance.faceValue).toBe('number');
+      expect(dtoInstance.faceValue).toBe(1000);
 
-      // Validation should fail because it's a string, not a number
+      // Validation should pass because it's now a valid number
       const errors = await validateDto(dto);
-      expect(hasErrorsForProperty(errors, 'faceValue')).toBe(true);
+      expect(hasErrorsForProperty(errors, 'faceValue')).toBe(false);
     });
 
     /**
-     * BD-TYPE-002: Should handle boolean to number conversion attempt
+     * BD-TYPE-002: @Type decorator transforms boolean to number (true=1, false=0)
      */
-    it('BD-TYPE-002: should reject boolean for faceValue', async () => {
+    it('BD-TYPE-002: should transform boolean faceValue to number', async () => {
       const dto = { ...validDto, faceValue: true as any };
 
-      const errors = await validateDto(dto);
+      const dtoInstance = plainToInstance(BondCalculationDto, dto);
+      // With @Type() decorator, boolean true is transformed to 1
+      expect(typeof dtoInstance.faceValue).toBe('number');
+      expect(dtoInstance.faceValue).toBe(1);
 
-      expect(hasErrorsForProperty(errors, 'faceValue')).toBe(true);
+      // Validation may pass since 1 is a valid positive number
+      const errors = await validateDto(dto);
+      // The faceValue of 1 passes the @Min(1) validation
+      expect(hasErrorsForProperty(errors, 'faceValue')).toBe(false);
     });
   });
 
@@ -761,7 +769,7 @@ describe('BondCalculationDto Validation', () => {
         couponRate: -5,
         marketPrice: 0,
         yearsToMaturity: -1,
-        couponFrequency: 99,
+        frequency: 99,
       };
 
       const errors = await validateDto(invalidDto);
@@ -773,7 +781,7 @@ describe('BondCalculationDto Validation', () => {
       expect(properties).toContain('couponRate');
       expect(properties).toContain('marketPrice');
       expect(properties).toContain('yearsToMaturity');
-      expect(properties).toContain('couponFrequency');
+      expect(properties).toContain('frequency');
     });
 
     /**

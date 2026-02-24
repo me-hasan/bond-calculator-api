@@ -39,7 +39,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -53,7 +53,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 1050,
         yearsToMaturity: 10,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -67,7 +67,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 1000,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -81,7 +81,7 @@ describe('BondsService', () => {
         couponRate: 0.01,
         marketPrice: 800,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -96,7 +96,7 @@ describe('BondsService', () => {
         couponRate: 15,
         marketPrice: 1200,
         yearsToMaturity: 10,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -110,7 +110,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 0.01, // minimum allowed by validation
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -125,7 +125,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 95,
         yearsToMaturity: 3,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -139,7 +139,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950000,
         yearsToMaturity: 30,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -157,7 +157,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -171,7 +171,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 1050,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -185,7 +185,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 1000,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -199,7 +199,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 700,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -212,7 +212,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 1300,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -225,7 +225,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 1,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -238,7 +238,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 30,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -251,7 +251,7 @@ describe('BondsService', () => {
         couponRate: 0.01,
         marketPrice: 800,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -264,7 +264,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 2,
+        frequency: 2,
       };
 
       const result = service.calculateBond(dto);
@@ -281,7 +281,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -295,7 +295,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 2,
+        frequency: 2,
       };
 
       const result = service.calculateBond(dto);
@@ -309,7 +309,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 1,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -323,7 +323,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 30,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -337,7 +337,7 @@ describe('BondsService', () => {
         couponRate: 0.01,
         marketPrice: 800,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -355,7 +355,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -368,7 +368,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 1050,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -381,7 +381,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 1000,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -394,7 +394,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 500,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -407,7 +407,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 1500,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -424,7 +424,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -437,7 +437,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 2,
+        frequency: 2,
       };
 
       const result = service.calculateBond(dto);
@@ -450,7 +450,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 1,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -463,7 +463,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 30,
-        couponFrequency: 2,
+        frequency: 2,
       };
 
       const result = service.calculateBond(dto);
@@ -476,7 +476,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -491,7 +491,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 2,
+        frequency: 2,
       };
 
       const result = service.calculateBond(dto);
@@ -506,7 +506,7 @@ describe('BondsService', () => {
         couponRate: 10,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -521,7 +521,7 @@ describe('BondsService', () => {
         couponRate: 0.01,
         marketPrice: 800,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -536,7 +536,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 3,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const schedule = service.generateCashflowSchedule(dto);
@@ -551,7 +551,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 2,
-        couponFrequency: 2,
+        frequency: 2,
       };
 
       const schedule = service.generateCashflowSchedule(dto);
@@ -567,7 +567,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const schedule = service.generateCashflowSchedule(dto);
@@ -582,7 +582,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 3,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const schedule = service.generateCashflowSchedule(dto);
@@ -601,7 +601,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 2,
-        couponFrequency: 2,
+        frequency: 2,
       };
 
       const schedule = service.generateCashflowSchedule(dto);
@@ -620,7 +620,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 2,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const schedule = service.generateCashflowSchedule(dto);
@@ -635,7 +635,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const schedule = service.generateCashflowSchedule(dto);
@@ -666,7 +666,7 @@ describe('BondsService', () => {
         couponRate: 5.5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -679,7 +679,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5.5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -692,7 +692,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 9500000,
         yearsToMaturity: 10,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -705,7 +705,7 @@ describe('BondsService', () => {
         couponRate: 0.1,
         marketPrice: 0.95,
         yearsToMaturity: 1,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
@@ -722,7 +722,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 10,
-        couponFrequency: 2,
+        frequency: 2,
       };
 
       const result = service.calculateBond(dto);
@@ -746,7 +746,7 @@ describe('BondsService', () => {
         couponRate: 5,
         marketPrice: 900,
         yearsToMaturity: 10,
-        couponFrequency: 2,
+        frequency: 2,
       };
 
       const result = service.calculateBond(dto);
@@ -763,7 +763,7 @@ describe('BondsService', () => {
         couponRate: 8,
         marketPrice: 1200,
         yearsToMaturity: 5,
-        couponFrequency: 1,
+        frequency: 1,
       };
 
       const result = service.calculateBond(dto);
