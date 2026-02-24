@@ -28,6 +28,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const responseObj = exceptionResponse as Record<string, any>;
         message = responseObj.message || message;
         errors = responseObj.errors;
+
+        // Handle custom validation error format from exception factory
+        if (responseObj.message === 'Validation failed' && responseObj.errors) {
+          status = HttpStatus.BAD_REQUEST;
+          message = 'Validation failed';
+          errors = responseObj.errors;
+        }
       }
     } else if (exception instanceof Error) {
       message = exception.message;
