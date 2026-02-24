@@ -1,10 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+
+  // CORS configuration
+  const corsOrigin = configService.get<string>('CORS_ORIGIN') || '*';
+  app.enableCors({
+    origin: corsOrigin === '*' ? '*' : corsOrigin.split(','),
+    credentials: true,
+  });
 
   // Global validation pipe with detailed error messages
   app.useGlobalPipes(
