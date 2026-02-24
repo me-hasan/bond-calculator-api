@@ -4,15 +4,28 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(HttpExceptionFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+
+    // Log the full exception for debugging
+    this.logger.error(`[EXCEPTION] URL: ${request.url}`);
+    this.logger.error(`[EXCEPTION] Method: ${request.method}`);
+    this.logger.error(`[EXCEPTION] Body: ${JSON.stringify(request.body)}`);
+    this.logger.error(`[EXCEPTION] Exception: ${exception instanceof Error ? exception.message : String(exception)}`);
+
+    if (exception instanceof Error && exception.stack) {
+      this.logger.error(`[EXCEPTION] Stack: ${exception.stack}`);
+    }
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
@@ -45,6 +58,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       errors = message;
       message = 'Validation failed';
     }
+
+    this.logger.error(`[EXCEPTION] Returning status ${status}, message: ${message}, errors: ${JSON.stringify(errors)}`);
 
     response.status(status).json({
       statusCode: status,
