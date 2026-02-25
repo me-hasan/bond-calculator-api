@@ -155,69 +155,63 @@ http://localhost:3000
 
 ### Endpoints
 
-#### 1. Calculate Bond Metrics
+#### Calculate Bond Metrics
 
 ```http
 POST /bond/calculate
 Content-Type: application/json
 ```
 
+This single endpoint calculates all bond metrics including current yield, YTM, total interest, bond status, and detailed cashflow schedule.
+
 **Request Body:**
 ```json
 {
   "faceValue": 1000,
-  "couponRate": 5,
+  "couponRate": 4,
   "marketPrice": 950,
-  "yearsToMaturity": 5,
-  "couponFrequency": 2,
-  "yieldToMaturity": 4.5
+  "yearsToMaturity": 4
 }
 ```
 
 **Response (200 OK):**
 ```json
 {
-  "currentYield": 5.2631578947368425,
-  "yieldToMaturity": 6.389482699238392,
-  "totalInterest": 250,
+  "currentYield": 4.2105263157894735,
+  "yieldToMaturity": 5.384615384615385,
+  "totalInterest": 160,
   "status": "Discount",
   "cashflows": [
     {
       "period": 1,
-      "type": "coupon",
-      "amount": 25,
-      "presentValue": 24.23
+      "paymentDate": "2027-02-25T17:37:56.845Z",
+      "couponPayment": 40,
+      "cumulativeInterest": 40,
+      "remainingPrincipal": 1000
     },
     {
-      "period": 10,
-      "type": "principal",
-      "amount": 1025,
-      "presentValue": 755.96
+      "period": 2,
+      "paymentDate": "2028-02-25T17:37:56.845Z",
+      "couponPayment": 40,
+      "cumulativeInterest": 80,
+      "remainingPrincipal": 1000
+    },
+    {
+      "period": 3,
+      "paymentDate": "2029-02-25T17:37:56.845Z",
+      "couponPayment": 40,
+      "cumulativeInterest": 120,
+      "remainingPrincipal": 1000
+    },
+    {
+      "period": 4,
+      "paymentDate": "2030-02-25T17:37:56.845Z",
+      "couponPayment": 40,
+      "cumulativeInterest": 160,
+      "remainingPrincipal": 0
     }
   ]
 }
-```
-
-#### 2. Generate Cashflow Schedule
-
-```http
-POST /bond/cashflow-schedule
-Content-Type: application/json
-```
-
-**Request Body:** Same as calculate endpoint
-
-**Response (200 OK):**
-```json
-[
-  {
-    "period": 1,
-    "paymentDate": "2025-05-24T00:00:00.000Z",
-    "couponPayment": 25,
-    "cumulativeInterest": 25,
-    "remainingPrincipal": 1000
-  }
-]
 ```
 
 ### Status Codes
@@ -402,14 +396,6 @@ PV = Payment / (1 + Periodic YTM)^Period
 | `couponRate` | number | 0.01 | 100 | Yes |
 | `marketPrice` | number | 0.01 | - | Yes |
 | `yearsToMaturity` | number | 0.1 | 100 | Yes |
-| `couponFrequency` | number | - | - | Yes |
-| `yieldToMaturity` | number | 0.01 | 100 | No |
-
-### Valid Coupon Frequencies
-- `1` - Annual
-- `2` - Semi-Annual
-- `4` - Quarterly
-- `12` - Monthly
 
 ---
 
