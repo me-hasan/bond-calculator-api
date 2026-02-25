@@ -10,10 +10,24 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  // CORS configuration
-  const corsOrigin = configService.get<string>('CORS_ORIGIN') || '*';
+  // CORS configuration - support both LOCAL_CORS_ORIGIN and REMOTE_CORS_ORIGIN
+  const localCorsOrigin = configService.get<string>('LOCAL_CORS_ORIGIN');
+  const remoteCorsOrigin = configService.get<string>('REMOTE_CORS_ORIGIN');
+
+  let corsOrigins: string[] | string = '*';
+
+  if (localCorsOrigin || remoteCorsOrigin) {
+    corsOrigins = [];
+    if (localCorsOrigin) {
+      corsOrigins.push(...localCorsOrigin.split(',').map((origin) => origin.trim()));
+    }
+    if (remoteCorsOrigin) {
+      corsOrigins.push(...remoteCorsOrigin.split(',').map((origin) => origin.trim()));
+    }
+  }
+
   app.enableCors({
-    origin: corsOrigin === '*' ? '*' : corsOrigin.split(','),
+    origin: corsOrigins,
     credentials: true,
   });
 
