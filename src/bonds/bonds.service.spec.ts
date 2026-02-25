@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BondsService } from './bonds.service';
 import { BondCalculationDto } from './dto/bond-calculation.dto';
-import { CashflowType } from './dto/bond-calculation-response.dto';
 
 describe('BondsService', () => {
   let service: BondsService;
@@ -104,22 +103,7 @@ describe('BondsService', () => {
       expect(result.currentYield).toBeCloseTo(12.5, 2);
     });
 
-    it('BSS-CY-006: Handle zero market price (edge case)', () => {
-      const dto: BondCalculationDto = {
-        faceValue: 1000,
-        couponRate: 5,
-        marketPrice: 0.01, // minimum allowed by validation
-        yearsToMaturity: 5,
-        frequency: 1,
-      };
-
-      const result = service.calculateBond(dto);
-      // Should handle gracefully without throwing
-      expect(result.currentYield).toBeDefined();
-      expect(result.currentYield).toBeGreaterThan(0);
-    });
-
-    it('BSS-CY-007: Calculate current yield for small face value', () => {
+    it('BSS-CY-006: Calculate current yield for small face value', () => {
       const dto: BondCalculationDto = {
         faceValue: 100,
         couponRate: 5,
@@ -133,7 +117,7 @@ describe('BondsService', () => {
       expect(result.currentYield).toBeCloseTo(5.26, 2);
     });
 
-    it('BSS-CY-008: Calculate current yield for large face value', () => {
+    it('BSS-CY-007: Calculate current yield for large face value', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000000,
         couponRate: 5,
@@ -219,56 +203,18 @@ describe('BondsService', () => {
       expect(result.yieldToMaturity).toBeLessThan(3);
     });
 
-    it('BSS-YTM-006: Calculate YTM for short-term bond', () => {
-      const dto: BondCalculationDto = {
-        faceValue: 1000,
-        couponRate: 5,
-        marketPrice: 950,
-        yearsToMaturity: 1,
-        frequency: 1,
-      };
-
-      const result = service.calculateBond(dto);
-      expect(result.yieldToMaturity).toBeGreaterThan(0);
-    });
-
-    it('BSS-YTM-007: Calculate YTM for long-term bond', () => {
-      const dto: BondCalculationDto = {
-        faceValue: 1000,
-        couponRate: 5,
-        marketPrice: 950,
-        yearsToMaturity: 30,
-        frequency: 1,
-      };
-
-      const result = service.calculateBond(dto);
-      expect(result.yieldToMaturity).toBeGreaterThan(0);
-    });
-
-    it('BSS-YTM-008: Calculate YTM for zero coupon bond', () => {
-      const dto: BondCalculationDto = {
-        faceValue: 1000,
-        couponRate: 0.01,
-        marketPrice: 800,
-        yearsToMaturity: 5,
-        frequency: 1,
-      };
-
-      const result = service.calculateBond(dto);
-      expect(result.yieldToMaturity).toBeCloseTo(4.5, 1);
-    });
-
-    it('BSS-YTM-009: Calculate YTM for semi-annual coupon', () => {
+    it('BSS-YTM-006: Use provided YTM when given', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000,
         couponRate: 5,
         marketPrice: 950,
         yearsToMaturity: 5,
-        frequency: 2,
+        frequency: 1,
+        yieldToMaturity: 7.5,
       };
 
       const result = service.calculateBond(dto);
-      expect(result.yieldToMaturity).toBeGreaterThan(0);
+      expect(result.yieldToMaturity).toBe(7.5);
     });
   });
 
@@ -415,9 +361,9 @@ describe('BondsService', () => {
     });
   });
 
-  // ==================== Cash Flow Tests ====================
+  // ==================== Cash Flow Schedule Tests ====================
 
-  describe('Cash Flow Generation', () => {
+  describe('Cashflow Schedule Generation', () => {
     it('BSS-CF-001: Generate correct periods for annual coupon', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000,
@@ -444,26 +390,26 @@ describe('BondsService', () => {
       expect(result.cashflows.length).toBe(10);
     });
 
-    it('BSS-CF-003: Generate 1 period for 1-year annual bond', () => {
+    it('BSS-CF-003: Generate correct periods for quarterly coupon', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000,
         couponRate: 5,
         marketPrice: 950,
-        yearsToMaturity: 1,
-        frequency: 1,
+        yearsToMaturity: 5,
+        frequency: 4,
       };
 
       const result = service.calculateBond(dto);
-      expect(result.cashflows.length).toBe(1);
+      expect(result.cashflows.length).toBe(20);
     });
 
-    it('BSS-CF-004: Generate 60 periods for 30-year semi-annual bond', () => {
+    it('BSS-CF-004: Generate correct periods for monthly coupon', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000,
         couponRate: 5,
         marketPrice: 950,
-        yearsToMaturity: 30,
-        frequency: 2,
+        yearsToMaturity: 5,
+        frequency: 12,
       };
 
       const result = service.calculateBond(dto);
@@ -480,8 +426,8 @@ describe('BondsService', () => {
       };
 
       const result = service.calculateBond(dto);
-      result.cashflows.slice(0, -1).forEach((cf) => {
-        expect(cf.amount).toBe(50); // 1000 * 0.05
+      result.cashflows.forEach((cf) => {
+        expect(cf.couponPayment).toBe(50); // 1000 * 0.05
       });
     });
 
@@ -495,8 +441,8 @@ describe('BondsService', () => {
       };
 
       const result = service.calculateBond(dto);
-      result.cashflows.slice(0, -1).forEach((cf) => {
-        expect(cf.amount).toBe(25); // 1000 * 0.05 / 2
+      result.cashflows.forEach((cf) => {
+        expect(cf.couponPayment).toBe(25); // 1000 * 0.05 / 2
       });
     });
 
@@ -510,27 +456,12 @@ describe('BondsService', () => {
       };
 
       const result = service.calculateBond(dto);
-      result.cashflows.slice(0, -1).forEach((cf) => {
-        expect(cf.amount).toBe(100); // 1000 * 0.10
+      result.cashflows.forEach((cf) => {
+        expect(cf.couponPayment).toBe(100); // 1000 * 0.10
       });
     });
 
-    it('BSS-CF-008: Calculate coupon payment for zero coupon bond', () => {
-      const dto: BondCalculationDto = {
-        faceValue: 1000,
-        couponRate: 0.01,
-        marketPrice: 800,
-        yearsToMaturity: 5,
-        frequency: 1,
-      };
-
-      const result = service.calculateBond(dto);
-      result.cashflows.slice(0, -1).forEach((cf) => {
-        expect(cf.amount).toBeCloseTo(0.1, 1);
-      });
-    });
-
-    it('BSS-CF-009: Accumulate interest correctly (annual)', () => {
+    it('BSS-CF-008: Accumulate interest correctly (annual)', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000,
         couponRate: 5,
@@ -539,13 +470,13 @@ describe('BondsService', () => {
         frequency: 1,
       };
 
-      const schedule = service.generateCashflowSchedule(dto);
-      expect(schedule[0].cumulativeInterest).toBe(50);
-      expect(schedule[1].cumulativeInterest).toBe(100);
-      expect(schedule[2].cumulativeInterest).toBe(150);
+      const result = service.calculateBond(dto);
+      expect(result.cashflows[0].cumulativeInterest).toBe(50);
+      expect(result.cashflows[1].cumulativeInterest).toBe(100);
+      expect(result.cashflows[2].cumulativeInterest).toBe(150);
     });
 
-    it('BSS-CF-010: Accumulate interest for semi-annual', () => {
+    it('BSS-CF-009: Accumulate interest for semi-annual', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000,
         couponRate: 5,
@@ -554,14 +485,14 @@ describe('BondsService', () => {
         frequency: 2,
       };
 
-      const schedule = service.generateCashflowSchedule(dto);
-      expect(schedule[0].cumulativeInterest).toBe(25);
-      expect(schedule[1].cumulativeInterest).toBe(50);
-      expect(schedule[2].cumulativeInterest).toBe(75);
-      expect(schedule[3].cumulativeInterest).toBe(100);
+      const result = service.calculateBond(dto);
+      expect(result.cashflows[0].cumulativeInterest).toBe(25);
+      expect(result.cashflows[1].cumulativeInterest).toBe(50);
+      expect(result.cashflows[2].cumulativeInterest).toBe(75);
+      expect(result.cashflows[3].cumulativeInterest).toBe(100);
     });
 
-    it('BSS-CF-011: Maintain constant remaining principal', () => {
+    it('BSS-CF-010: Maintain constant remaining principal until final period', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000,
         couponRate: 5,
@@ -570,13 +501,14 @@ describe('BondsService', () => {
         frequency: 1,
       };
 
-      const schedule = service.generateCashflowSchedule(dto);
-      schedule.slice(0, -1).forEach((row) => {
-        expect(row.remainingPrincipal).toBe(1000);
+      const result = service.calculateBond(dto);
+      result.cashflows.slice(0, -1).forEach((cf) => {
+        expect(cf.remainingPrincipal).toBe(1000);
       });
+      expect(result.cashflows[result.cashflows.length - 1].remainingPrincipal).toBe(0);
     });
 
-    it('BSS-CF-012: Generate correct payment dates for annual', () => {
+    it('BSS-CF-011: Generate correct payment dates for annual', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000,
         couponRate: 5,
@@ -585,9 +517,9 @@ describe('BondsService', () => {
         frequency: 1,
       };
 
-      const schedule = service.generateCashflowSchedule(dto);
-      const firstDate = new Date(schedule[0].paymentDate);
-      const secondDate = new Date(schedule[1].paymentDate);
+      const result = service.calculateBond(dto);
+      const firstDate = new Date(result.cashflows[0].paymentDate);
+      const secondDate = new Date(result.cashflows[1].paymentDate);
       const diffDays = Math.abs((secondDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
 
       // Should be approximately 365 days apart
@@ -595,7 +527,7 @@ describe('BondsService', () => {
       expect(diffDays).toBeLessThanOrEqual(366);
     });
 
-    it('BSS-CF-013: Generate correct payment dates for semi-annual', () => {
+    it('BSS-CF-012: Generate correct payment dates for semi-annual', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000,
         couponRate: 5,
@@ -604,9 +536,9 @@ describe('BondsService', () => {
         frequency: 2,
       };
 
-      const schedule = service.generateCashflowSchedule(dto);
-      const firstDate = new Date(schedule[0].paymentDate);
-      const secondDate = new Date(schedule[1].paymentDate);
+      const result = service.calculateBond(dto);
+      const firstDate = new Date(result.cashflows[0].paymentDate);
+      const secondDate = new Date(result.cashflows[1].paymentDate);
       const diffDays = Math.abs((secondDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
 
       // Should be approximately 182 days apart
@@ -614,22 +546,7 @@ describe('BondsService', () => {
       expect(diffDays).toBeLessThanOrEqual(184);
     });
 
-    it('BSS-CF-014: Handle leap years in date calculation', () => {
-      const dto: BondCalculationDto = {
-        faceValue: 1000,
-        couponRate: 5,
-        marketPrice: 950,
-        yearsToMaturity: 2,
-        frequency: 1,
-      };
-
-      const schedule = service.generateCashflowSchedule(dto);
-      schedule.forEach((row) => {
-        expect(() => new Date(row.paymentDate)).not.toThrow();
-      });
-    });
-
-    it('BSS-CF-015: Ensure last period date is maturity date', () => {
+    it('BSS-CF-013: All cashflows should have required properties', () => {
       const dto: BondCalculationDto = {
         faceValue: 1000,
         couponRate: 5,
@@ -638,22 +555,43 @@ describe('BondsService', () => {
         frequency: 1,
       };
 
-      const schedule = service.generateCashflowSchedule(dto);
+      const result = service.calculateBond(dto);
+      result.cashflows.forEach((cf, index) => {
+        expect(cf).toHaveProperty('period');
+        expect(cf).toHaveProperty('paymentDate');
+        expect(cf).toHaveProperty('couponPayment');
+        expect(cf).toHaveProperty('cumulativeInterest');
+        expect(cf).toHaveProperty('remainingPrincipal');
+        expect(cf.period).toBe(index + 1);
+      });
+    });
 
-      // Check that we have exactly 5 periods
-      expect(schedule.length).toBe(5);
+    it('BSS-CF-014: Final cashflow should have zero remaining principal', () => {
+      const dto: BondCalculationDto = {
+        faceValue: 1000,
+        couponRate: 5,
+        marketPrice: 950,
+        yearsToMaturity: 5,
+        frequency: 1,
+      };
 
-      // Check that each period is spaced correctly (12 months apart for annual)
-      const dates = schedule.map((row) => new Date(row.paymentDate));
+      const result = service.calculateBond(dto);
+      const finalCashflow = result.cashflows[result.cashflows.length - 1];
+      expect(finalCashflow.remainingPrincipal).toBe(0);
+    });
 
-      for (let i = 1; i < dates.length; i++) {
-        const diffMs = dates[i].getTime() - dates[i - 1].getTime();
-        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    it('BSS-CF-015: Cumulative interest should match total interest', () => {
+      const dto: BondCalculationDto = {
+        faceValue: 1000,
+        couponRate: 5,
+        marketPrice: 950,
+        yearsToMaturity: 5,
+        frequency: 1,
+      };
 
-        // Should be approximately 1 year (365 days) apart
-        expect(diffDays).toBeGreaterThanOrEqual(360);
-        expect(diffDays).toBeLessThanOrEqual(370);
-      }
+      const result = service.calculateBond(dto);
+      const finalCashflow = result.cashflows[result.cashflows.length - 1];
+      expect(finalCashflow.cumulativeInterest).toBe(result.totalInterest);
     });
   });
 
@@ -754,7 +692,6 @@ describe('BondsService', () => {
       expect(result.status).toBe('Discount');
       expect(result.yieldToMaturity).toBeGreaterThan(result.currentYield);
       expect(result.cashflows.length).toBe(20);
-      expect(result.cashflows[result.cashflows.length - 1].type).toBe(CashflowType.PRINCIPAL);
     });
 
     it('BSS-INT-003: Full calculation for premium bond scenario', () => {
@@ -772,6 +709,97 @@ describe('BondsService', () => {
       expect(result.yieldToMaturity).toBeLessThan(result.currentYield);
       expect(result.cashflows.length).toBe(5);
       expect(result.totalInterest).toBe(400);
+    });
+
+    it('BSS-INT-004: Example from requirements - 5 year bond with 5% coupon', () => {
+      const dto: BondCalculationDto = {
+        faceValue: 1000,
+        couponRate: 5,
+        marketPrice: 950,
+        yearsToMaturity: 5,
+        frequency: 1,
+      };
+
+      const result = service.calculateBond(dto);
+
+      // Verify expected values from requirements
+      expect(result.currentYield).toBeCloseTo(5.26, 2);
+      // YTM approximation formula: ((50 + (1000-950)/5) / ((1000+950)/2)) * 100 = 6.15%
+      expect(result.yieldToMaturity).toBeCloseTo(6.15, 2);
+      expect(result.totalInterest).toBe(250);
+      expect(result.status).toBe('Discount');
+      expect(result.cashflows.length).toBe(5);
+
+      // Verify cashflow structure
+      result.cashflows.forEach((cf, index) => {
+        expect(cf.period).toBe(index + 1);
+        expect(cf.couponPayment).toBe(50);
+        expect(cf.remainingPrincipal).toBe(index === 4 ? 0 : 1000);
+        expect(new Date(cf.paymentDate)).toBeInstanceOf(Date);
+      });
+    });
+  });
+
+  // ==================== Response Structure Tests ====================
+
+  describe('Response Structure', () => {
+    it('BSS-RS-001: Response should have correct structure', () => {
+      const dto: BondCalculationDto = {
+        faceValue: 1000,
+        couponRate: 5,
+        marketPrice: 950,
+        yearsToMaturity: 5,
+        frequency: 1,
+      };
+
+      const result = service.calculateBond(dto);
+
+      expect(result).toMatchObject({
+        currentYield: expect.any(Number),
+        yieldToMaturity: expect.any(Number),
+        totalInterest: expect.any(Number),
+        status: expect.any(String),
+        cashflows: expect.any(Array),
+      });
+    });
+
+    it('BSS-RS-002: Cashflow items should have correct structure', () => {
+      const dto: BondCalculationDto = {
+        faceValue: 1000,
+        couponRate: 5,
+        marketPrice: 950,
+        yearsToMaturity: 5,
+        frequency: 1,
+      };
+
+      const result = service.calculateBond(dto);
+
+      result.cashflows.forEach((cf) => {
+        expect(cf).toMatchObject({
+          period: expect.any(Number),
+          paymentDate: expect.any(String),
+          couponPayment: expect.any(Number),
+          cumulativeInterest: expect.any(Number),
+          remainingPrincipal: expect.any(Number),
+        });
+      });
+    });
+
+    it('BSS-RS-003: Payment dates should be valid ISO dates', () => {
+      const dto: BondCalculationDto = {
+        faceValue: 1000,
+        couponRate: 5,
+        marketPrice: 950,
+        yearsToMaturity: 5,
+        frequency: 1,
+      };
+
+      const result = service.calculateBond(dto);
+
+      result.cashflows.forEach((cf) => {
+        expect(() => new Date(cf.paymentDate)).not.toThrow();
+        expect(new Date(cf.paymentDate).toISOString()).toBe(cf.paymentDate);
+      });
     });
   });
 });

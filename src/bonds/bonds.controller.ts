@@ -12,11 +12,11 @@ export class BondsController {
   constructor(private readonly bondsService: BondsService) {}
 
   /**
-   * Calculate bond metrics including current yield, YTM, total interest, and cashflows
+   * Calculate bond metrics including current yield, YTM, total interest, status, and detailed cashflow schedule
    * POST /bond/calculate
    *
    * @param dto Bond calculation parameters
-   * @returns Bond calculation results
+   * @returns Bond calculation results with detailed cashflow schedule
    *
    * Status codes:
    * - 200 OK: Successful calculation
@@ -39,18 +39,5 @@ export class BondsController {
       this.logger.error(`[calculateBond] Error during calculation: ${error}`);
       throw error;
     }
-  }
-
-  /**
-   * Generate detailed cashflow schedule
-   * POST /bond/cashflow-schedule
-   *
-   * @param dto Bond calculation parameters
-   * @returns Detailed cashflow schedule with dates
-   */
-  @Post('cashflow-schedule')
-  @HttpCode(HttpStatus.OK)
-  generateCashflowSchedule(@Body() dto: BondCalculationDto) {
-    return this.bondsService.generateCashflowSchedule(dto);
   }
 }

@@ -1,25 +1,6 @@
-import { IsNumber, IsArray, IsString, IsEnum, ValidateNested } from 'class-validator';
+import { IsNumber, IsArray, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-
-export enum CashflowType {
-  COUPON = 'coupon',
-  PRINCIPAL = 'principal',
-}
-
-export class Cashflow {
-  @IsNumber()
-  period: number;
-
-  @IsString()
-  @IsEnum(CashflowType)
-  type: CashflowType;
-
-  @IsNumber()
-  amount: number;
-
-  @IsNumber()
-  presentValue: number;
-}
+import { CashflowScheduleItemDto } from './cashflow-schedule-item.dto';
 
 export class BondCalculationResponseDto {
   @IsNumber()
@@ -36,6 +17,6 @@ export class BondCalculationResponseDto {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => Cashflow)
-  cashflows: Cashflow[];
+  @Type(() => CashflowScheduleItemDto)
+  cashflows: CashflowScheduleItemDto[];
 }

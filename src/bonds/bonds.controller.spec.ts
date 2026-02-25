@@ -4,20 +4,19 @@ import { BondsService } from './bonds.service';
 import { HttpExceptionFilter } from '../common/filters/http-exception.filter';
 import { BondCalculationException } from './exceptions/bond-calculation.exception';
 import { ValidationPipe } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
 import { BondCalculationDto } from './dto/bond-calculation.dto';
 
 /**
  * Bonds Controller Test Suite
  *
  * Test Coverage:
- * - Controller Initialization (BCC-001, BCC-002)
- * - POST Success Responses (BCC-POST-001 to BCC-POST-003)
- * - POST Validation Tests (BCC-POST-004 to BCC-POST-015)
- * - Validation Pipe (BCC-VP-001)
- * - Service Exception Handling (BCC-EX-001)
- * - Content-Type Header (BCC-CT-001)
- * - CORS (BCC-CORS-001)
+ * - Controller Initialization
+ * - POST Success Responses
+ * - POST Validation Tests
+ * - Validation Pipe
+ * - Service Exception Handling
+ * - Content-Type Header
+ * - CORS
  */
 
 describe('BondsController', () => {
@@ -25,15 +24,15 @@ describe('BondsController', () => {
   let service: BondsService;
 
   // Valid test data fixture
-  const validDto = {
+  const validDto: BondCalculationDto = {
     faceValue: 1000,
     couponRate: 5,
     marketPrice: 950,
     yearsToMaturity: 5,
-    couponFrequency: 2,
+    frequency: 2,
   };
 
-  // Mock service response fixture
+  // Mock service response fixture with new cashflow format
   const mockServiceResponse = {
     currentYield: 5.2631578947368425,
     yieldToMaturity: 6.389482699238392,
@@ -42,63 +41,73 @@ describe('BondsController', () => {
     cashflows: [
       {
         period: 1,
-        type: 'coupon',
-        amount: 25,
-        presentValue: 24.231585746253563,
+        paymentDate: new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        couponPayment: 25,
+        cumulativeInterest: 25,
+        remainingPrincipal: 1000,
       },
       {
         period: 2,
-        type: 'coupon',
-        amount: 25,
-        presentValue: 23.49107425190486,
+        paymentDate: new Date(Date.now() + 12 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        couponPayment: 25,
+        cumulativeInterest: 50,
+        remainingPrincipal: 1000,
       },
       {
         period: 3,
-        type: 'coupon',
-        amount: 25,
-        presentValue: 22.77744319089268,
+        paymentDate: new Date(Date.now() + 18 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        couponPayment: 25,
+        cumulativeInterest: 75,
+        remainingPrincipal: 1000,
       },
       {
         period: 4,
-        type: 'coupon',
-        amount: 25,
-        presentValue: 22.08935365003865,
+        paymentDate: new Date(Date.now() + 24 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        couponPayment: 25,
+        cumulativeInterest: 100,
+        remainingPrincipal: 1000,
       },
       {
         period: 5,
-        type: 'coupon',
-        amount: 25,
-        presentValue: 21.425511017954653,
+        paymentDate: new Date(Date.now() + 30 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        couponPayment: 25,
+        cumulativeInterest: 125,
+        remainingPrincipal: 1000,
       },
       {
         period: 6,
-        type: 'coupon',
-        amount: 25,
-        presentValue: 20.78564471101667,
+        paymentDate: new Date(Date.now() + 36 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        couponPayment: 25,
+        cumulativeInterest: 150,
+        remainingPrincipal: 1000,
       },
       {
         period: 7,
-        type: 'coupon',
-        amount: 25,
-        presentValue: 20.168507278566904,
+        paymentDate: new Date(Date.now() + 42 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        couponPayment: 25,
+        cumulativeInterest: 175,
+        remainingPrincipal: 1000,
       },
       {
         period: 8,
-        type: 'coupon',
-        amount: 25,
-        presentValue: 19.572878652823453,
+        paymentDate: new Date(Date.now() + 48 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        couponPayment: 25,
+        cumulativeInterest: 200,
+        remainingPrincipal: 1000,
       },
       {
         period: 9,
-        type: 'coupon',
-        amount: 25,
-        presentValue: 18.99755106926336,
+        paymentDate: new Date(Date.now() + 54 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        couponPayment: 25,
+        cumulativeInterest: 225,
+        remainingPrincipal: 1000,
       },
       {
         period: 10,
-        type: 'principal',
-        amount: 1025,
-        presentValue: 755.9594502312856,
+        paymentDate: new Date(Date.now() + 60 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        couponPayment: 25,
+        cumulativeInterest: 250,
+        remainingPrincipal: 0,
       },
     ],
   };
@@ -106,7 +115,6 @@ describe('BondsController', () => {
   beforeEach(async () => {
     const mockBondsService = {
       calculateBond: jest.fn().mockReturnValue(mockServiceResponse),
-      generateCashflowSchedule: jest.fn().mockReturnValue([]),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -140,25 +148,17 @@ describe('BondsController', () => {
     });
 
     /**
-     * BCC-002: Controller should have calculate method
+     * BCC-002: Controller should have calculateBond method
      */
     it('BCC-002: should have calculateBond method', () => {
       expect(controller.calculateBond).toBeDefined();
       expect(typeof controller.calculateBond).toBe('function');
     });
-
-    /**
-     * BCC-003: Controller should have generateCashflowSchedule method
-     */
-    it('BCC-003: should have generateCashflowSchedule method', () => {
-      expect(controller.generateCashflowSchedule).toBeDefined();
-      expect(typeof controller.generateCashflowSchedule).toBe('function');
-    });
   });
 
   describe('POST - Success Response', () => {
     /**
-     * BCC-POST-001: Return 200 for valid calculation request
+     * BCC-POST-001: Return result for valid calculation request
      */
     it('BCC-POST-001: should return calculation result for valid DTO', () => {
       const result = controller.calculateBond(validDto);
@@ -202,6 +202,21 @@ describe('BondsController', () => {
       expect(typeof result.totalInterest).toBe('number');
       expect(typeof result.status).toBe('string');
       expect(Array.isArray(result.cashflows)).toBe(true);
+    });
+
+    /**
+     * BCC-POST-003.2: Cashflows should have new structure
+     */
+    it('BCC-POST-003.2: should return cashflows with new structure', () => {
+      const result = controller.calculateBond(validDto);
+
+      result.cashflows.forEach((cf) => {
+        expect(cf).toHaveProperty('period');
+        expect(cf).toHaveProperty('paymentDate');
+        expect(cf).toHaveProperty('couponPayment');
+        expect(cf).toHaveProperty('cumulativeInterest');
+        expect(cf).toHaveProperty('remainingPrincipal');
+      });
     });
   });
 
@@ -286,10 +301,10 @@ describe('BondsController', () => {
 
   describe('POST - Validation Tests (Invalid Frequency)', () => {
     /**
-     * BCC-POST-008: Return 400 for invalid frequency
+     * BCC-POST-008: Return 400 for invalid frequency string
      */
     it('BCC-POST-008: should return 400 for invalid frequency string', async () => {
-      const invalidDto = { ...validDto, couponFrequency: 'quarterly' as any };
+      const invalidDto = { ...validDto, frequency: 'quarterly' as any };
 
       const validationPipe = new ValidationPipe({
         transform: true,
@@ -308,7 +323,7 @@ describe('BondsController', () => {
      * BCC-POST-008.1: Return 400 for frequency not in [1, 2, 4, 12]
      */
     it('BCC-POST-008.1: should return 400 for frequency value of 3', async () => {
-      const invalidDto = { ...validDto, couponFrequency: 3 };
+      const invalidDto = { ...validDto, frequency: 3 };
 
       const validationPipe = new ValidationPipe({
         transform: true,
@@ -327,7 +342,7 @@ describe('BondsController', () => {
      * BCC-POST-008.2: Return 400 for frequency value of 5
      */
     it('BCC-POST-008.2: should return 400 for frequency value of 5', async () => {
-      const invalidDto = { ...validDto, couponFrequency: 5 };
+      const invalidDto = { ...validDto, frequency: 5 };
 
       const validationPipe = new ValidationPipe({
         transform: true,
@@ -410,7 +425,7 @@ describe('BondsController', () => {
       const incompleteDto = {
         faceValue: 1000,
         couponRate: 5,
-        // Missing: marketPrice, yearsToMaturity, couponFrequency
+        // Missing: marketPrice, yearsToMaturity, frequency
       };
 
       const validationPipe = new ValidationPipe({
@@ -444,14 +459,17 @@ describe('BondsController', () => {
     });
 
     /**
-     * BCC-POST-014: Return 400 for string instead of number
+     * BCC-POST-014: Return 400 for invalid string that cannot be converted to number
      */
-    it('BCC-POST-014: should return 400 for string instead of number', async () => {
-      const invalidDto = { ...validDto, faceValue: '1000' as any };
+    it('BCC-POST-014: should return 400 for invalid string that cannot be converted', async () => {
+      const invalidDto = { ...validDto, faceValue: 'invalid' as any };
 
       const validationPipe = new ValidationPipe({
         transform: true,
         whitelist: true,
+        transformOptions: {
+          enableImplicitConversion: true,
+        },
       });
 
       await expect(
@@ -629,7 +647,7 @@ describe('BondsController', () => {
         couponRate: -5,
         marketPrice: 0,
         yearsToMaturity: -1,
-        couponFrequency: 99,
+        frequency: 99,
       };
 
       const validationPipe = new ValidationPipe({
@@ -674,7 +692,6 @@ describe('BondsController', () => {
         calculateBond: jest.fn().mockImplementation(() => {
           throw new BondCalculationException('Calculation failed');
         }),
-        generateCashflowSchedule: jest.fn(),
       };
 
       const module: TestingModule = await Test.createTestingModule({
@@ -749,34 +766,12 @@ describe('BondsController', () => {
     });
   });
 
-  describe('generateCashflowSchedule', () => {
-    /**
-     * BCC-CFS-001: Should return cashflow schedule array
-     */
-    it('BCC-CFS-001: should return cashflow schedule array', () => {
-      const result = controller.generateCashflowSchedule(validDto);
-
-      expect(result).toBeDefined();
-      expect(service.generateCashflowSchedule).toHaveBeenCalledWith(validDto);
-    });
-
-    /**
-     * BCC-CFS-002: Should call service with correct parameters
-     */
-    it('BCC-CFS-002: should call service with correct DTO', () => {
-      controller.generateCashflowSchedule(validDto);
-
-      expect(service.generateCashflowSchedule).toHaveBeenCalledTimes(1);
-      expect(service.generateCashflowSchedule).toHaveBeenCalledWith(validDto);
-    });
-  });
-
   describe('Integration Tests', () => {
     /**
      * BCC-INT-001: Full calculation with premium bond
      */
     it('BCC-INT-001: should calculate premium bond correctly', () => {
-      const premiumDto = {
+      const premiumDto: BondCalculationDto = {
         ...validDto,
         faceValue: 1000,
         marketPrice: 1100,
@@ -799,7 +794,7 @@ describe('BondsController', () => {
      * BCC-INT-002: Full calculation with par bond
      */
     it('BCC-INT-002: should calculate par bond correctly', () => {
-      const parDto = {
+      const parDto: BondCalculationDto = {
         ...validDto,
         faceValue: 1000,
         marketPrice: 1000,
@@ -822,7 +817,7 @@ describe('BondsController', () => {
      * BCC-INT-003: Full calculation with discount bond
      */
     it('BCC-INT-003: should calculate discount bond correctly', () => {
-      const discountDto = {
+      const discountDto: BondCalculationDto = {
         ...validDto,
         faceValue: 1000,
         marketPrice: 900,
@@ -847,7 +842,7 @@ describe('BondsController', () => {
      * BCC-FREQ-001: Should accept frequency of 1 (annual)
      */
     it('BCC-FREQ-001: should accept frequency of 1 (annual)', () => {
-      const annualDto = { ...validDto, couponFrequency: 1 };
+      const annualDto: BondCalculationDto = { ...validDto, frequency: 1 };
 
       const result = controller.calculateBond(annualDto);
 
@@ -859,7 +854,7 @@ describe('BondsController', () => {
      * BCC-FREQ-002: Should accept frequency of 2 (semi-annual)
      */
     it('BCC-FREQ-002: should accept frequency of 2 (semi-annual)', () => {
-      const semiAnnualDto = { ...validDto, couponFrequency: 2 };
+      const semiAnnualDto: BondCalculationDto = { ...validDto, frequency: 2 };
 
       const result = controller.calculateBond(semiAnnualDto);
 
@@ -871,7 +866,7 @@ describe('BondsController', () => {
      * BCC-FREQ-003: Should accept frequency of 4 (quarterly)
      */
     it('BCC-FREQ-003: should accept frequency of 4 (quarterly)', () => {
-      const quarterlyDto = { ...validDto, couponFrequency: 4 };
+      const quarterlyDto: BondCalculationDto = { ...validDto, frequency: 4 };
 
       const result = controller.calculateBond(quarterlyDto);
 
@@ -883,7 +878,7 @@ describe('BondsController', () => {
      * BCC-FREQ-004: Should accept frequency of 12 (monthly)
      */
     it('BCC-FREQ-004: should accept frequency of 12 (monthly)', () => {
-      const monthlyDto = { ...validDto, couponFrequency: 12 };
+      const monthlyDto: BondCalculationDto = { ...validDto, frequency: 12 };
 
       const result = controller.calculateBond(monthlyDto);
 
@@ -897,7 +892,7 @@ describe('BondsController', () => {
      * BCC-YTM-001: Should work without yieldToMaturity provided
      */
     it('BCC-YTM-001: should work without yieldToMaturity', () => {
-      const dtoWithoutYtm = { ...validDto };
+      const dtoWithoutYtm: BondCalculationDto = { ...validDto };
 
       const result = controller.calculateBond(dtoWithoutYtm);
 
@@ -909,7 +904,7 @@ describe('BondsController', () => {
      * BCC-YTM-002: Should work with yieldToMaturity provided
      */
     it('BCC-YTM-002: should work with provided yieldToMaturity', () => {
-      const dtoWithYtm = {
+      const dtoWithYtm: BondCalculationDto = {
         ...validDto,
         yieldToMaturity: 4.5,
       };
@@ -918,6 +913,79 @@ describe('BondsController', () => {
 
       expect(result).toBeDefined();
       expect(service.calculateBond).toHaveBeenCalledWith(dtoWithYtm);
+    });
+  });
+
+  describe('Response Structure Validation', () => {
+    /**
+     * BCC-RS-001: Cashflows should have all required properties
+     */
+    it('BCC-RS-001: should return cashflows with all required properties', () => {
+      const result = controller.calculateBond(validDto);
+
+      expect(Array.isArray(result.cashflows)).toBe(true);
+      expect(result.cashflows.length).toBeGreaterThan(0);
+
+      result.cashflows.forEach((cf) => {
+        expect(cf).toHaveProperty('period');
+        expect(cf).toHaveProperty('paymentDate');
+        expect(cf).toHaveProperty('couponPayment');
+        expect(cf).toHaveProperty('cumulativeInterest');
+        expect(cf).toHaveProperty('remainingPrincipal');
+
+        expect(typeof cf.period).toBe('number');
+        expect(typeof cf.paymentDate).toBe('string');
+        expect(typeof cf.couponPayment).toBe('number');
+        expect(typeof cf.cumulativeInterest).toBe('number');
+        expect(typeof cf.remainingPrincipal).toBe('number');
+      });
+    });
+
+    /**
+     * BCC-RS-002: Payment dates should be valid ISO strings
+     */
+    it('BCC-RS-002: should return valid ISO date strings', () => {
+      const result = controller.calculateBond(validDto);
+
+      result.cashflows.forEach((cf) => {
+        expect(() => new Date(cf.paymentDate)).not.toThrow();
+        expect(new Date(cf.paymentDate).toISOString()).toBe(cf.paymentDate);
+      });
+    });
+
+    /**
+     * BCC-RS-003: Periods should be sequential starting from 1
+     */
+    it('BCC-RS-003: should have sequential periods starting from 1', () => {
+      const result = controller.calculateBond(validDto);
+
+      result.cashflows.forEach((cf, index) => {
+        expect(cf.period).toBe(index + 1);
+      });
+    });
+  });
+
+  describe('Single Endpoint Verification', () => {
+    /**
+     * BCC-SE-001: Should only have calculateBond endpoint
+     */
+    it('BCC-SE-001: should not have generateCashflowSchedule method', () => {
+      expect(controller['generateCashflowSchedule']).toBeUndefined();
+    });
+
+    /**
+     * BCC-SE-002: calculateBond should return combined response
+     */
+    it('BCC-SE-002: should return combined calculation and schedule in one call', () => {
+      const result = controller.calculateBond(validDto);
+
+      // Verify we have both metrics and cashflows in single response
+      expect(result.currentYield).toBeDefined();
+      expect(result.yieldToMaturity).toBeDefined();
+      expect(result.totalInterest).toBeDefined();
+      expect(result.status).toBeDefined();
+      expect(result.cashflows).toBeDefined();
+      expect(result.cashflows.length).toBeGreaterThan(0);
     });
   });
 });
